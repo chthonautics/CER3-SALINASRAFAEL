@@ -1,0 +1,85 @@
+{% extends 'template.html' %}
+
+{% load static %}
+
+{% block main %}
+
+<div class="separator"></div>
+
+        <div class="row">
+            <h1 class="col text-center">Iniciar sesión</h1>
+        </div>
+
+        <div class="row">
+            <h6 class="col text-center">Si no tiene cuenta, puede crear una <a href="{% url 'register' %}">aquí</a></h6>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="row container-fluid mx-auto" style="max-width: 50rem;">
+            <iframe name="dframe" id="dframe" style="display: none"></iframe>
+            <form id="loginForm" action="/api/user/" method="put" target="dframe">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="inputEmail" class="form-label">Dirección de correo</label>
+                    {{ form.email }}
+                </div>
+                <div class="mb-3">
+                    <label for="inputPassword" class="form-label">Contraseña</label>
+                    {{ form.password }}
+                </div>
+
+                <input type="submit" class="btn btn-success" id="form-submit" value="Enviar">
+                <script>
+                    if (typeof jQuery == "undefined") {
+                        alert("jquery is not loaded")
+                    }
+        
+                    var form = $("#loginForm")
+
+                    form.submit(function(){
+                        var formdata = form.serializeArray()
+                        var password = $("#inputPassword").val() // get password from field
+
+                        // repackage data to hash password
+                        // has to use promise because of the way crypto works
+                        // why couldnt they just make it easy and provide a sync function
+                        // i know SSL is a thing but i dont have a cert and im not risking it
+                        SHA256(password).then((hash) => {
+                            formdata.forEach(function(value){
+                                if(value["name"] == "password"){
+                                    value["value"] = hash
+                                }
+                            })
+
+                            $.ajax({
+                                type: form.attr("method"),
+                                url: form.attr("action"),
+                                data: formdata,
+                                success: function (response) {
+                                    alert("Se ha iniciado sesión correctamente");
+                                    window.location.replace("/")
+                                },
+                                error: function(response){
+                                    switch(response.status){
+                                        case 403:
+                                        case 409:
+                                            alert("Credenciales incorrectas")
+                                        break;
+                                        default:
+                                            alert("Ha ocurrido un error")
+                                        break;
+                                    }
+                                }
+                            })
+                        })
+                        return false
+                    })            
+                </script>
+            </form>
+        </div>
+
+{% endblock %}
+
+
+        

@@ -1,0 +1,52 @@
+{% extends 'template.html' %}
+
+{% load static %}
+
+{% block main %}
+
+<div class="row">
+    <h1 class="col text-center">Cuenta</h1>
+</div>
+
+<div class="separator"></div>
+
+<div class="row container-fluid mx-auto" style="max-width: 50rem;">
+    <h5 class="row">Nombre: {{name}}</h5>
+    <h5 class="row">Email: {{email}}</h5>
+    <h5 class="row">Staff: {{staff}}</h5>
+</div>
+
+<div class="row container-fluid mx-auto" style="max-width: 50rem;">
+    <div class="separator"></div>
+    <button class="btn btn-success" onclick="logout()">Cerrar sesión</button>
+</div>
+
+<script>
+    if (typeof jQuery == "undefined") {
+        alert("jquery is not loaded")
+    }
+
+    function logout(){
+        $.ajax({
+            type: "put",
+            url: "/api/user/{{id}}/",
+            data: { 
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                type: "logout"
+            },
+            success: function (response) {
+                alert("Se ha cerrado la sesión")
+                window.location.replace("/")
+            },
+            error: function(response){
+                switch(response.status){
+                    default:
+                        alert("Ha ocurrido un error")
+                    break;
+                }
+            }
+        })
+    }
+        
+</script>
+{% endblock %}

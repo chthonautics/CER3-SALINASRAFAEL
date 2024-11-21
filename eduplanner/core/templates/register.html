@@ -1,0 +1,96 @@
+{% extends 'template.html' %}
+
+{% load static %}
+
+{% block main %}
+
+<div class="separator"></div>
+
+<div class="row">
+    <h1 class="col text-center">Registrar usuario</h1>
+</div>
+
+<div class="row">
+    <h6 class="col text-center">Si ya tiene cuenta, inicie sesión <a href="{% url 'login' %}">aquí</a></h6>
+</div>
+
+<div class="separator"></div>
+
+<div class="row container-fluid mx-auto" style="max-width: 50rem;">
+    <iframe name="dframe" id="dframe" style="display: none"></iframe>
+    <form id="registerForm" action="/api/user/" method="post" target="dframe">
+        {% csrf_token %}              
+        <div class="mb-3">
+            <label for="inputName" class="form-label">Nombre</label>
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            <label for="inputEmail" class="form-label">Dirección de correo</label>
+            {{ form.email }}
+            <div id="emailHelp" class="form-text">No compratiremos tu dirección con nadie.</div>
+        </div>
+        <div class="mb-3">
+            <label for="inputPassword" class="form-label">Contraseña</label>
+            {{ form.password }}
+        </div>
+        <div class="mb-3">
+            <label for="inputRepeat" class="form-label">Repetir contraseña</label>
+            {{ form.pass_repeat }}
+        </div>
+
+        <input type="submit" class="btn btn-success" id="register" value="Enviar" disabled>
+        <script>
+            if (typeof jQuery == "undefined") {
+                alert("jquery is not loaded")
+            }
+
+            var form = $("#registerForm")
+
+            form.submit(function(){
+                var formdata = form.serializeArray()
+                var password = $("#inputPassword").val() // get password from field
+
+
+                // repackage data to hash password
+                // has to use promise because of the way crypto works
+                // why couldnt they just make it easy and provide a sync function
+                // i know SSL is a thing but i dont have a cert and im not risking it
+                SHA256(password).then((hash) => {
+                    formdata.forEach(function(value){
+                        if(value["name"] == "password"){
+                            value["value"] = hash
+                        }
+
+                        // eliminate repeated password
+                        if(value["name"] == "pass_repeat"){
+                            value["value"] = null
+                        }
+                    })
+
+                    $.ajax({
+                        type: form.attr("method"),
+                        url: form.attr("action"),
+                        data: formdata,
+                        success: function (response) {
+                            alert("Se ha registrado la cuenta");
+                            window.location.replace("/")
+                        },
+                        error: function(response){
+                            switch(response.status){
+                                case 409:
+                                    alert("Este email ya se encuentra registrado")
+                                break;
+                                default:
+                                    alert("Ha ocurrido un error")
+                                break;
+                            }
+                        }
+                    })
+                })
+                return false
+            })            
+        </script>
+    </form>
+</div>
+
+{% endblock %}
