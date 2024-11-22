@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from .models import *
-from core.models import user
+from core.models import User
 from .serializers import *
 
 import os, json
@@ -30,7 +30,7 @@ def gen_token():
 # verify account
 def verify_account(request):
     # check if client token exists before indexing because otherwise it throws a fit like a baby
-    server_token = user.objects.filter(session_token=request.session.get("token")) and user.objects.filter(session_token=request.session.get("token")).values()[0].get("session_token")
+    server_token = User.objects.filter(session_token=request.session.get("token")) and User.objects.filter(session_token=request.session.get("token")).values()[0].get("session_token")
     local_token = request.session.get("token")
     
     # verify if token is valid
@@ -53,45 +53,61 @@ class IntegerViewSet(viewsets.ModelViewSet):
     
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    queryset = user.objects.all()
+    queryset = User.objects.none() # avoid data leaks (hopefully)
     
-    def create(self, request): # register user
+    def create(self, request): # login/register user
         data = request.POST
 
-        # if account already exists
-        if(user.objects.filter(email=request.POST.get("email"))):
-            return HttpResponse(status=409)
-        
-        token = gen_token()
-
-        user(
-            name            = data.get("name"),
-            email           = data.get("email"),
-            staff           = False, # not staff by default
-            password_sha256 = data.get("password"),
-            session_token   = token
-        ).save()
-
-        request.session["token"] = token
-
-        return HttpResponse(status=200)
-    
-    def retrieve(self, request, pk=None): # get user data
-        return HttpResponse(status=200)
-
-    def update(self, request, pk=None): # update token and whatnot
-        data = request.data
-
         # because of le backwards compatibility i cant use match
-        if(data.get("type") == "logout"):
-            if(not verify_account(request)):
+        if(data.get("type") == "login"): 
+            # reject request if no email is provided (probably vulnerable otherwise) or the password is wrong
+            if(
+                (not User.objects.filter(email=data.get("email"))) or
+                data.get("password") != User.objects.get(email=data.get("email")).password_sha256
+            ):
                 return HttpResponse(status=403)
-            
-            session = user.objects.get(session_token=request.session.get("token"))
-            session.session_token = ""
+
+            token = gen_token()
+            request.session["token"] = token
+
+            session = User.objects.get(email=data.get("email"))
+            session.session_token = token
             session.save()
 
-            del request.session["token"]
+            return HttpResponse(status=200)
+        
+        elif(data.get("type") == "register"):
+            # if account already exists
+            if(User.objects.filter(email=request.POST.get("email"))):
+                return HttpResponse(status=409)
             
+            token = gen_token()
+
+            User(
+                name            = data.get("name"),
+                email           = data.get("email"),
+                staff           = False, # not staff by default
+                password_sha256 = data.get("password"),
+                session_token   = token
+            ).save()
+
+            request.session["token"] = token
+
+            return HttpResponse(status=200)
+        
+        else:
+            return HttpResponse(status=404)
+    
+    def update(self, request, pk=None): # logout (for now)
+        data = request.data # data passed by put url is currently unused because im just using the names for now
+        
+        if(not verify_account(request)):
+            return HttpResponse(status=403)
+        
+        session = User.objects.get(session_token=request.session.get("token"))
+        session.session_token = ""
+        session.save()
+
+        del request.session["token"]
 
         return HttpResponse(status=200)

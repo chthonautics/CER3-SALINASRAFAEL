@@ -9,7 +9,7 @@ import json
 # verify account
 def __verify_account(request):
     # check if client token exists before indexing because otherwise it throws a fit like a baby
-    server_token = user.objects.filter(session_token=request.session.get("token")) and user.objects.filter(session_token=request.session.get("token")).values()[0].get("session_token")
+    server_token = User.objects.filter(session_token=request.session.get("token")) and User.objects.filter(session_token=request.session.get("token")).values()[0].get("session_token")
     local_token = request.session.get("token")
 
     # verify if token is valid
@@ -35,7 +35,7 @@ def account(request):
     if(not __verify_account(request)):
         return redirect("/login")
     
-    session = user.objects.filter(session_token=request.session.get("token")).values()[0]
+    session = User.objects.filter(session_token=request.session.get("token")).values()[0]
 
     data = {
         'id'    : session.get("id"),

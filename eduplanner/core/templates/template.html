@@ -12,9 +12,10 @@
             type="text/css"
         />
 
+        <!-- the "now" bit ensures css is reloaded properly when i go edit it by giving it a somewhat random URL argument -->
         <link
             rel="StyleSheet"
-            href="{% static 'css/style.css' %}"
+            href="{% static 'css/style.css' %}?{% now 'U' %}" 
             type="text/css"
         />
 
