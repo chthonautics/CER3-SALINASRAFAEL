@@ -21,6 +21,28 @@ def index(request):
 
     return render(request, 'testpage.html', data)
 
+def calendar(request):
+    if(not __verify_account(request)):
+        return redirect("/login")
+    
+    data = {}
+
+    return render(request, 'calendar.html', data)
+
+def manage(request):
+    if(not __verify_account(request)):
+        return redirect("/login")
+    
+    session = User.objects.filter(session_token=request.session.get("token")).values()[0]
+
+    # cant manage anything if not staff
+    if(not session.get("staff")):
+       return redirect("/")
+
+    data = {'form': eventform}
+
+    return render(request, 'manage.html', data)
+
 def login(request):
     data = {'form': loginform()}
 

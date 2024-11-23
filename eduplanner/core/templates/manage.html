@@ -1,0 +1,63 @@
+{% extends 'template.html' %}
+
+{% load static %}
+
+{% block main %}
+
+<div class="separator"></div>
+
+<div class="row container-fluid mx-auto" style="max-width: 50rem;">
+    <iframe name="dframe" id="dframe" style="display: none"></iframe>
+    <form id="form" action="/api/integer/" method="post" target="dframe">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="inputEmail" class="form-label">Nombre del evento</label>
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            <label for="inputPassword" class="form-label">Descripción del evento</label>
+            {{ form.description }}
+        </div>
+        <div class="mb-3">
+            <label for="inputEmail" class="form-label">Fecha de inicio (YYYY-MM-DD)</label>
+            {{ form.date_start }}
+        </div>
+        <div class="mb-3">
+            <label for="inputPassword" class="form-label">Fecha de término (YYYY-MM-DD)</label>
+            {{ form.date_end }}
+        </div>
+        <div class="mb-3">
+            <label for="inputPassword" class="form-label">Tipo de evento</label>
+            {{ form.event_type }}
+        </div>
+        
+        <input id="form-submit" type="submit" class="btn btn-primary" value="Enviar" />
+    </form>
+</div>
+
+<script>
+    if (typeof jQuery == "undefined") {
+        alert("jquery is not loaded")
+    }
+
+    var form = $("#form")
+    form.submit(function(){
+        $.ajax({
+            type: form.attr("method"),
+            url: form.attr("action"),
+            data: form.serialize(),
+            success: function (data) {
+                jsondata = JSON.parse(data)
+                alert(jsondata.status + ": " + jsondata.message);
+            },
+            error: function(data){
+                jsondata = JSON.parse(data)
+                alert(jsondata.status)
+            }
+        });
+        return false
+    })            
+</script>
+
+{% endblock %}
