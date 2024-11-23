@@ -30,7 +30,9 @@ def gen_token():
 # verify account
 def verify_account(request):
     # check if client token exists before indexing because otherwise it throws a fit like a baby
-    server_token = User.objects.filter(session_token=request.session.get("token")) and User.objects.filter(session_token=request.session.get("token")).values()[0].get("session_token")
+    user = User.objects.filter(session_token=request.session.get("token"))
+
+    server_token = user and user.values()[0].get("session_token")
     local_token = request.session.get("token")
     
     # verify if token is valid
@@ -109,5 +111,33 @@ class UserViewSet(viewsets.ModelViewSet):
         session.save()
 
         del request.session["token"]
+
+        return HttpResponse(status=200)
+    
+class EventViewSet(viewsets.ModelViewSet):
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()
+
+    def create(self, request): # POST
+        data = request.POST
+        user = User.objects.filter(session_token=request.session.get("token"))
+
+        # verify identity before doing anything
+        if(
+            (not verify_account(request))
+            or (not user.values()[0].get("staff"))
+        ):
+            return HttpResponse(status=403)
+        
+        print(data, data.get("forced"))
+
+        Event(
+            name            = data.get("name"),
+            description     = data.get("description"),
+            date_start      = data.get("date_start"),
+            date_end        = data.get("date_end"),
+            forced          = data.get("forced") == "on",
+            event_type      = data.get("event_type")
+        ).save()
 
         return HttpResponse(status=200)

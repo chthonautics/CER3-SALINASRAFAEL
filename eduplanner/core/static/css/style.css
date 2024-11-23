@@ -75,6 +75,23 @@ p {
     padding: none;
 }
 
+.event {
+    margin: 5px;
+    padding: 10px;
+}
+
+.event-holiday {
+    background-color: #f37171;
+}
+
+.event-obligatory {
+    background-color: #eec860;
+}
+
+.event-optional {
+    background-color: #69e47d;
+}
+
 .separator {
     width: 100%;
     height: 50px;

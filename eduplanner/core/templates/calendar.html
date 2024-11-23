@@ -4,6 +4,31 @@
 
 {% block main %}
 
-<!-- SITE GOES HERE BOZO -->
+<!--
+    to do: add nice event panels (i would make it look like a calendar if i had time)
+
+    title (big)
+    description
+    start date (just date if its the same as end date)
+    end date
+    forced attendance/forced holiday
+    event type
+
+    maybe make forced holidays a darker red or something
+-->
+
+<div id="holidays" class="row container-fluid mx-auto" style="max-width: 70rem;">
+    <div class="separator"></div>
+    <div class="col container-fluid mx-auto">
+        <h5 class="col text-center">Feriados</h1>
+        <div class="event event-holiday rounded"><p>gabagool</p></div>
+    </div>
+
+    <div id="events" class="col container-fluid mx-auto">
+        <h5 class="col text-center">Eventos</h1>
+        <div class="event event-optional rounded"><p>LOLE</p></div>
+        <div class="event event-obligatory rounded"><p>tony soprano</p></div>
+    </div>
+</div>
 
 {% endblock %}

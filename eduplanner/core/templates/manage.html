@@ -8,7 +8,7 @@
 
 <div class="row container-fluid mx-auto" style="max-width: 50rem;">
     <iframe name="dframe" id="dframe" style="display: none"></iframe>
-    <form id="form" action="/api/integer/" method="post" target="dframe">
+    <form id="form" action="/api/event/" method="post" target="dframe">
         {% csrf_token %}
 
         <div class="mb-3">
@@ -31,6 +31,10 @@
             <label for="inputPassword" class="form-label">Tipo de evento</label>
             {{ form.event_type }}
         </div>
+        <div class="mb-3">
+            <label for="inputPassword" class="form-label">Asistencia obligatoria</label>
+            {{ form.forced }}
+        </div>
         
         <input id="form-submit" type="submit" class="btn btn-primary" value="Enviar" />
     </form>
@@ -49,11 +53,11 @@
             data: form.serialize(),
             success: function (data) {
                 jsondata = JSON.parse(data)
-                alert(jsondata.status + ": " + jsondata.message);
+                alert("Se ha creado el evento");
             },
             error: function(data){
                 jsondata = JSON.parse(data)
-                alert(jsondata.status)
+                alert("Ha ocurrido un error")
             }
         });
         return false
