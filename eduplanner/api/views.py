@@ -57,7 +57,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.none() # avoid data leaks (hopefully)
     
-    def create(self, request): # login/register user
+    def create(self, request): # POST (login/register user)
         data = request.POST
 
         # because of le backwards compatibility i cant use match
@@ -100,7 +100,7 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return HttpResponse(status=404)
     
-    def update(self, request, pk=None): # logout (for now)
+    def update(self, request, pk=None): # PUT (logout)
         data = request.data # data passed by put url is currently unused because im just using the names for now
         
         if(not verify_account(request)):
@@ -125,7 +125,7 @@ class EventViewSet(viewsets.ModelViewSet):
             )
         )
 
-    def create(self, request): # POST
+    def create(self, request): # POST (new event)
         data = request.POST
         user = User.objects.get(session_token=request.session.get("token"))
 
@@ -148,7 +148,36 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return HttpResponse(status=200)
     
-    def destroy(self, request, pk):
+    def update(self, request, pk): # PUT (modify event)
+        data = request.data
+        user = User.objects.get(session_token=request.session.get("token"))
+
+        if(
+            (not verify_account(request))
+            or (not user.staff)
+        ):
+            return HttpResponse(status=403)
+
+        event = Event.objects.get(id=pk)
+
+        # cannot be indexed ("NON SUBSCRIPTABLE") therefore cannot be automated
+        event.name          = data.get("name")
+        event.description   = data.get("description")
+        event.date_start    = data.get("date_start")
+        event.date_end      = data.get("date_end")
+        event.forced        = data.get("forced") == "on"
+        event.event_type    = data.get("event_type")
+        event.admin         = user
+
+        print(data.get("forced") == "on", type(data.get("forced") == "on"))
+        print(event.forced, type(event.forced))
+
+        event.save()
+
+        return HttpResponse(status=200)
+
+    
+    def destroy(self, request, pk): # DELETE (remove event)
         data = request.data
         user = User.objects.get(session_token=request.session.get("token"))
 

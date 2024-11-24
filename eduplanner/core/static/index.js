@@ -29,6 +29,8 @@ let names = {
     event_type:     "Tipo de evento",
 }
 
+var editing = -1
+
 function validatePassword(){ // just makes sure the password fields are equal. thats it
     let pass = document.getElementById("inputPassword")
     let repeat = document.getElementById("inputRepeat")
@@ -53,7 +55,7 @@ async function SHA256(string){ // SHA256 encodes a string so i can use it to sto
 
 function verify(){
     let button = document.getElementById("form-submit")
-    let ids = ["inputDateStart", "inputDateEnd"]
+    let ids = ["id_date_start", "id_date_end"]
     let dates = {
         inputDateStart: {},
         inputDateEnd:   {}
@@ -92,12 +94,15 @@ function verify(){
         }
     }
 
+    console.log(dates)
+
     // make sure the event cant end before it starts
     button.disabled = !(
-        dates.inputDateEnd.year > dates.inputDateStart.year
-        || dates.inputDateEnd.month > dates.inputDateStart.month
-        || dates.inputDateEnd.day > dates.inputDateStart.day
+        dates[ids[1]].year > dates[ids[0]].year
+        || dates[ids[1]].month > dates[ids[0]].month
+        || dates[ids[1]].day >= dates[ids[0]].day
     )
+    return
 }
 
 function renderEvents(data, admin){
@@ -109,6 +114,7 @@ function renderEvents(data, admin){
         div.classList.add("rounded")
         div.classList.add(event.forced ? "event-obligatory" : "event-optional")
 
+        // create events
         for(let key in event){
             let element = document.createElement(key == "name" ? "h5" : "p")
 
@@ -134,6 +140,7 @@ function renderEvents(data, admin){
             div.appendChild(element)
         }
 
+        // additional behaviors if in manage panel
         if(admin){
             let modify = document.createElement("button")
             let remove = document.createElement("button")
@@ -144,7 +151,63 @@ function renderEvents(data, admin){
             modify.classList.add("btn")
             modify.classList.add("btn-primary")
 
-            modify.onclick = function(){}
+            // modify button
+            modify.onclick = function(){
+                editing = div.id.split("-")[1]
+
+                document.getElementById("title").innerHTML = "Editar evento"
+
+                let form = document.getElementById("form")
+
+                for(let key in event){
+                    let content
+                    switch(key){
+                        case "forced":
+                            content = event.forced ? "Si" : "No"
+                        break;
+                        case "event_type":
+                            content = eventTypes[event[key]-1] // off by one errors
+                        break;
+                        default:
+                            content = event[key]
+                        break;
+                    }
+
+                    let element = document.getElementById("id_" + key)
+
+                    console.log(key, event[key], element)
+                    if(element){
+                        switch(element.nodeName.toLowerCase()){
+                            case "textarea":
+                                element.innerHTML = event[key]
+                            break;
+                            case "input":
+                                switch(element.type){
+                                    case "checkbox":
+                                        element.checked = event[key]
+                                    break;
+                                    default:
+                                        element.value = event[key]
+                                    break;
+                                }
+                            break;
+                            case "select":
+                                element.selectedIndex = event[key]-1
+                            break;
+                            default:
+                                console.log(element, event[key])
+                            break;
+                        }
+                    }
+                }
+
+                verify()
+
+                form.action = "/api/event/" + editing + "/"
+                form.method = "put"
+            }
+
+            // remove button
             remove.onclick = function(){
                 $.ajax({
                     type: "delete",

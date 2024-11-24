@@ -13,7 +13,7 @@
     </div>
 
     <div class="col container-fluid mx-auto">
-        <h5 class="col text-center">Añadir evento</h5>
+        <h5 id="title" class="col text-center">Crear evento</h5>
             <div class="row container-fluid mx-auto" style="max-width: 50rem;">
                 <iframe name="dframe" id="dframe" style="display: none"></iframe>
                 <form id="form" action="/api/event/" method="post" target="dframe">
@@ -85,7 +85,14 @@
             url: form.attr("action"),
             data: form.serialize(),
             success: function (data) {
-                alert("Se ha creado el evento");
+                switch(form.attr("method")){
+                    case "post":
+                        alert("Se ha creado el evento");
+                    break;
+                    case "put":
+                        alert("Se ha modificado el evento");
+                    break;
+                }
                 window.location.replace("{% url 'manage' %}")
             },
             error: function(data){
