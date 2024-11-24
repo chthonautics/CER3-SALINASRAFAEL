@@ -80,16 +80,20 @@ p {
     padding: 10px;
 }
 
+.event-holiday-forced {
+    background-color: #17a1e0;
+}
+
 .event-holiday {
-    background-color: #f37171;
+    background-color: #73c7ee;
 }
 
 .event-obligatory {
-    background-color: #eec860;
+    background-color: #17a1e0;
 }
 
 .event-optional {
-    background-color: #69e47d;
+    background-color: #73c7ee;
 }
 
 .separator {

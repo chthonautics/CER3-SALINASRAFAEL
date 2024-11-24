@@ -17,18 +17,58 @@
     maybe make forced holidays a darker red or something
 -->
 
-<div id="holidays" class="row container-fluid mx-auto" style="max-width: 70rem;">
+<div class="row container-fluid mx-auto" style="max-width: 70rem;">
     <div class="separator"></div>
-    <div class="col container-fluid mx-auto">
+    <div id="holidays" class="col container-fluid mx-auto">
         <h5 class="col text-center">Feriados</h1>
-        <div class="event event-holiday rounded"><p>gabagool</p></div>
     </div>
 
     <div id="events" class="col container-fluid mx-auto">
         <h5 class="col text-center">Eventos</h1>
-        <div class="event event-optional rounded"><p>LOLE</p></div>
-        <div class="event event-obligatory rounded"><p>tony soprano</p></div>
     </div>
 </div>
+
+<script>
+    // internal api
+    $.ajax({
+        type: "get",
+        url: "/api/event/",
+        data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}' // just in case
+        },
+        success: function (data) {
+            renderEvents(data)
+        },
+        error: function(response){
+            switch(response.status){
+                default:
+                    alert("Ha ocurrido un error")
+                break;
+            }
+        }
+    })
+
+    // public api
+    $.ajax({
+        type: "list",
+        url: "https://apis.digital.gob.cl/fl/feriados/2024",
+        // jsonp is required or it throws a CORS fit
+        dataType: "jsonp",
+        jsonp: "callback",
+        jsonpCallback: "processJSONPResponse",
+        crossDomain: true,
+        data: {},
+        success: function (data) {
+            renderHolidays(data)
+        },
+        error: function(response){
+            switch(response.status){
+                default:
+                    alert("Ha ocurrido un error")
+                break;
+            }
+        }
+    })
+</script>
 
 {% endblock %}

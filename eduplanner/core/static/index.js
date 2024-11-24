@@ -1,3 +1,34 @@
+let eventTypes = [
+    "Inicio de Semestre",
+    "Fin de Semestre", 
+    "Inicio de Inscripción de Asignaturas", 
+    "Fin de Inscripción de Asignaturas", 
+    "Receso Académico", 
+    "Inicio de Plazos de Solicitudes Administrativas",
+    "Fin de Plazos de Solicitudes Administrativas", 
+    "Inicio de Plazos para la Gestión de Beneficios", 
+    "Fin de Plazos para la Gestión de Beneficios", 
+    "Ceremonia de Titulación o Graduación", 
+    "Reunión de Consejo Académico", 
+    "Talleres y Charlas", 
+    "Día de Orientación para Nuevos Estudiantes", 
+    "Eventos Extracurriculares", 
+    "Inicio de Clases", 
+    "Último Día de Clases", 
+    "Día de Puertas Abiertas", 
+    "Suspensión de Actividades Completa", 
+    "Suspensión de Actividades Parcial", 
+]
+
+let names = {
+    name:           "Nombre",
+    description:    "Descripción",
+    date_start:     "Fecha de inicio",
+    date_end:       "Fecha de término",
+    forced:         "Asistencia obligatoria",
+    event_type:     "Tipo de evento",
+}
+
 function validatePassword(){ // just makes sure the password fields are equal. thats it
     let pass = document.getElementById("inputPassword")
     let repeat = document.getElementById("inputRepeat")
@@ -72,4 +103,65 @@ function verify(){
     }
 
     button.disabled = false
+}
+
+function renderEvents(data){
+    for(let i = 0; i<data.length; i++){
+        let event = data[i]
+        let div = document.createElement("div")
+
+        div.classList.add("event")
+        div.classList.add("rounded")
+        div.classList.add(event.forced ? "event-obligatory" : "event-optional")
+
+        for(let key in event){
+            let element = document.createElement(key == "name" ? "h5" : "p")
+
+            let content
+            switch(key){
+                case "forced":
+                    content = event.forced ? "Si" : "No"
+                break;
+                case "event_type":
+                    content = eventTypes[event[key]-1] // off by one errors
+                break;
+                default:
+                    content = event[key]
+                break;
+            }
+
+            // ternary operators replace true and false with yes and no
+            element.innerHTML = names[key] + ": " + content
+            div.appendChild(element)
+        }
+
+        document.getElementById("events").appendChild(div)
+    }
+}
+
+function renderHolidays(data) {
+    for(let i = 0; i<data.length; i++){
+        let event = data[i]
+        let div = document.createElement("div")
+
+        div.classList.add("event")
+        div.classList.add("rounded")
+        div.classList.add(event.irrenunciable == "1" ? "event-holiday-forced" : "event-holiday")
+
+        console.log(event, event.irrenunciable)
+
+        for(let key in event){
+            let element = document.createElement(key == "nombre" ? "h5" : "p")
+
+            // replace 0 and 1 with yes and no
+            let forced = event[key] == 1 ? "Si" : "No"
+            let capKey = key.charAt(0).toUpperCase() + key.slice(1)
+
+            // ternary checks if its a number (forced holiday)
+            element.innerHTML = capKey + ": " + (isNaN(event[key]) ? event[key] : forced)
+            div.appendChild(element)
+        }
+
+        document.getElementById("holidays").appendChild(div)
+    }
 }

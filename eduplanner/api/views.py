@@ -120,12 +120,12 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def create(self, request): # POST
         data = request.POST
-        user = User.objects.filter(session_token=request.session.get("token"))
+        user = User.objects.get(session_token=request.session.get("token"))
 
         # verify identity before doing anything
         if(
             (not verify_account(request))
-            or (not user.values()[0].get("staff"))
+            or (not user.staff)
         ):
             return HttpResponse(status=403)
         
@@ -137,7 +137,8 @@ class EventViewSet(viewsets.ModelViewSet):
             date_start      = data.get("date_start"),
             date_end        = data.get("date_end"),
             forced          = data.get("forced") == "on",
-            event_type      = data.get("event_type")
+            event_type      = data.get("event_type"),
+            admin           = user
         ).save()
 
         return HttpResponse(status=200)

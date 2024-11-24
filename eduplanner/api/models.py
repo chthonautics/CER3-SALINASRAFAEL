@@ -1,5 +1,6 @@
 from django.db import models
 from .events import *
+from core.models import *
 
 # test model
 class Response(models.Model):
@@ -13,3 +14,4 @@ class Event(models.Model):
     date_end        = models.CharField(max_length=16, default="1970-1-1") # make sure to handle if these two are the same
     forced          = models.BooleanField(default=False)
     event_type      = models.CharField(max_length=256, choices=eventTypes) # event type (theres like 20 of em i'll list them out later)
+    admin           = models.ForeignKey(User, on_delete=models.CASCADE, default=None) # admin that added the event

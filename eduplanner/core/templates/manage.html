@@ -52,11 +52,9 @@
             url: form.attr("action"),
             data: form.serialize(),
             success: function (data) {
-                jsondata = JSON.parse(data)
                 alert("Se ha creado el evento");
             },
             error: function(data){
-                jsondata = JSON.parse(data)
                 alert("Ha ocurrido un error")
             }
         });
