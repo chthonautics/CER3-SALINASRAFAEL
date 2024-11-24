@@ -93,19 +93,14 @@ function verify(){
     }
 
     // make sure the event cant end before it starts
-    if(
-        dates.inputDateStart.year > dates.inputDateEnd.year
-        || dates.inputDateStart.month > dates.inputDateEnd.month
-        || dates.inputDateStart.day > dates.inputDateEnd.day
-    ){
-        button.disabled = true
-        return
-    }
-
-    button.disabled = false
+    button.disabled = !(
+        dates.inputDateEnd.year > dates.inputDateStart.year
+        || dates.inputDateEnd.month > dates.inputDateStart.month
+        || dates.inputDateEnd.day > dates.inputDateStart.day
+    )
 }
 
-function renderEvents(data){
+function renderEvents(data, admin){
     for(let i = 0; i<data.length; i++){
         let event = data[i]
         let div = document.createElement("div")
@@ -119,6 +114,10 @@ function renderEvents(data){
 
             let content
             switch(key){
+                case "id":
+                    div.id = "event-" + event[key]
+                    continue // skip cycle
+                break;
                 case "forced":
                     content = event.forced ? "Si" : "No"
                 break;
@@ -133,6 +132,45 @@ function renderEvents(data){
             // ternary operators replace true and false with yes and no
             element.innerHTML = names[key] + ": " + content
             div.appendChild(element)
+        }
+
+        if(admin){
+            let modify = document.createElement("button")
+            let remove = document.createElement("button")
+
+            modify.innerHTML = "Modificar"
+            remove.innerHTML = "Eliminar"
+
+            modify.classList.add("btn")
+            modify.classList.add("btn-primary")
+
+            modify.onclick = function(){}
+            remove.onclick = function(){
+                $.ajax({
+                    type: "delete",
+                    url: "/api/event/" + div.id.split("-")[1] + "/",
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function (data) {
+                        alert("Se ha eliminado el evento");
+                        window.location.replace("/manage")
+                    },
+                    error: function(data){
+                        switch(response.status){
+                            default:
+                                alert("Ha ocurrido un error")
+                            break;
+                        }
+                    }
+                });
+            }
+
+            remove.classList.add("btn")
+            remove.classList.add("btn-danger")
+
+            div.appendChild(modify)
+            div.appendChild(remove)
         }
 
         document.getElementById("events").appendChild(div)

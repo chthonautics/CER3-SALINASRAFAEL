@@ -20,11 +20,11 @@
 <div class="row container-fluid mx-auto" style="max-width: 70rem;">
     <div class="separator"></div>
     <div id="holidays" class="col container-fluid mx-auto">
-        <h5 class="col text-center">Feriados</h1>
+        <h5 class="col text-center">Feriados</h5>
     </div>
 
     <div id="events" class="col container-fluid mx-auto">
-        <h5 class="col text-center">Eventos</h1>
+        <h5 class="col text-center">Eventos</h5>
     </div>
 </div>
 
@@ -37,7 +37,9 @@
             csrfmiddlewaretoken: '{{ csrf_token }}' // just in case
         },
         success: function (data) {
-            renderEvents(data)
+            jsondata = JSON.parse(data)
+            
+            renderEvents(jsondata)
         },
         error: function(response){
             switch(response.status){

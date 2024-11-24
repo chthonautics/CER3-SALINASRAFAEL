@@ -17,9 +17,12 @@ def __verify_account(request):
 
 # Create your views here.
 def index(request):
-    data = {'form': testform()}
+    data = {}
 
-    return render(request, 'testpage.html', data)
+    if(not __verify_account(request)):
+        return redirect("/login")
+    else:
+        return redirect("/calendar")
 
 def calendar(request):
     if(not __verify_account(request)):

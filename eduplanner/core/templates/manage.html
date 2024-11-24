@@ -6,39 +6,51 @@
 
 <div class="separator"></div>
 
-<div class="row container-fluid mx-auto" style="max-width: 50rem;">
-    <iframe name="dframe" id="dframe" style="display: none"></iframe>
-    <form id="form" action="/api/event/" method="post" target="dframe">
-        {% csrf_token %}
+<div class="row container-fluid mx-auto" style="max-width: 70rem;">
+    <div class="separator"></div>
+    <div id="events" class="col container-fluid mx-auto">
+        <h5 class="col text-center">Eventos</h5>
+    </div>
 
-        <div class="mb-3">
-            <label for="inputEmail" class="form-label">Nombre del evento</label>
-            {{ form.name }}
-        </div>
-        <div class="mb-3">
-            <label for="inputPassword" class="form-label">Descripción del evento</label>
-            {{ form.description }}
-        </div>
-        <div class="mb-3">
-            <label for="inputEmail" class="form-label">Fecha de inicio (YYYY-MM-DD)</label>
-            {{ form.date_start }}
-        </div>
-        <div class="mb-3">
-            <label for="inputPassword" class="form-label">Fecha de término (YYYY-MM-DD)</label>
-            {{ form.date_end }}
-        </div>
-        <div class="mb-3">
-            <label for="inputPassword" class="form-label">Tipo de evento</label>
-            {{ form.event_type }}
-        </div>
-        <div class="mb-3">
-            <label for="inputPassword" class="form-label">Asistencia obligatoria</label>
-            {{ form.forced }}
-        </div>
-        
-        <input id="form-submit" type="submit" class="btn btn-primary" value="Enviar" />
-    </form>
+    <div class="col container-fluid mx-auto">
+        <h5 class="col text-center">Añadir evento</h5>
+            <div class="row container-fluid mx-auto" style="max-width: 50rem;">
+                <iframe name="dframe" id="dframe" style="display: none"></iframe>
+                <form id="form" action="/api/event/" method="post" target="dframe">
+                    {% csrf_token %}
+            
+                    <div class="mb-3">
+                        <label for="inputEmail" class="form-label">Nombre del evento</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputPassword" class="form-label">Descripción del evento</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputEmail" class="form-label">Fecha de inicio (YYYY-MM-DD)</label>
+                        {{ form.date_start }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputPassword" class="form-label">Fecha de término (YYYY-MM-DD)</label>
+                        {{ form.date_end }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputPassword" class="form-label">Tipo de evento</label>
+                        {{ form.event_type }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputPassword" class="form-label">Asistencia obligatoria</label>
+                        {{ form.forced }}
+                    </div>
+                    
+                    <input disabled id="form-submit" type="submit" class="btn btn-primary" value="Aceptar" />
+                </form>
+            </div>
+    </div>
 </div>
+
+
 
 <script>
     if (typeof jQuery == "undefined") {
@@ -46,6 +58,27 @@
     }
 
     var form = $("#form")
+
+    $.ajax({
+        type: "get",
+        url: "/api/event/",
+        data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}' // just in case
+        },
+        success: function (data) {
+            jsondata = JSON.parse(data)
+            
+            renderEvents(jsondata, true)
+        },
+        error: function(response){
+            switch(response.status){
+                default:
+                    alert("Ha ocurrido un error")
+                break;
+            }
+        }
+    })
+
     form.submit(function(){
         $.ajax({
             type: form.attr("method"),
@@ -53,6 +86,7 @@
             data: form.serialize(),
             success: function (data) {
                 alert("Se ha creado el evento");
+                window.location.replace("{% url 'manage' %}")
             },
             error: function(data){
                 alert("Ha ocurrido un error")

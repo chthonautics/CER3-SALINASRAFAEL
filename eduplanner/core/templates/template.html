@@ -27,10 +27,9 @@
     <body>
         <header>
             <nav class="navbar row container-fluid fixed-top">
-                <span class="col"><img src="{% static 'resources/Trollface.png' %}" class="img-fluid" id="nav-img" alt=""></span>
+                <span class="col"><img src="{% static 'resources/calendar.png' %}" class="img-fluid" id="nav-img" alt=""></span>
                 <a href="{% url 'index' %}" class="col"><input type="button" class="navigator" value="INICIO"></a>
                 <a href="{% url 'calendar' %}" class="col"><input type="button" class="navigator" value="CALENDARIO"></a>
-                <a href="{% static 'resources/soprano.png' %}" class="col"><input type="button" class="navigator" value="tony soprano"></a>
                 <a href="{% url 'account' %}" class="col"><input type="button" class="navigator" value="CUENTA"></a>
             </nav>
         </header>

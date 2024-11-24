@@ -118,6 +118,13 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
 
+    def list(self, request): # GET
+        return HttpResponse(
+            JSONRenderer().render(
+                EventSerializer(Event.objects.order_by("date_start"), many=True).data
+            )
+        )
+
     def create(self, request): # POST
         data = request.POST
         user = User.objects.get(session_token=request.session.get("token"))
@@ -128,8 +135,6 @@ class EventViewSet(viewsets.ModelViewSet):
             or (not user.staff)
         ):
             return HttpResponse(status=403)
-        
-        print(data, data.get("forced"))
 
         Event(
             name            = data.get("name"),
@@ -140,5 +145,21 @@ class EventViewSet(viewsets.ModelViewSet):
             event_type      = data.get("event_type"),
             admin           = user
         ).save()
+
+        return HttpResponse(status=200)
+    
+    def destroy(self, request, pk):
+        data = request.data
+        user = User.objects.get(session_token=request.session.get("token"))
+
+        print(pk)
+            
+        if(
+            (not verify_account(request))
+            or (not user.staff)
+        ):
+            return HttpResponse(status=403)
+        
+        Event.objects.get(id=pk).delete()
 
         return HttpResponse(status=200)
