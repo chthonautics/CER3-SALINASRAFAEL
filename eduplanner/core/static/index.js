@@ -25,6 +25,7 @@ let names = {
     description:    "Descripción",
     date_start:     "Fecha de inicio",
     date_end:       "Fecha de término",
+    date:           "Fecha",
     forced:         "Asistencia obligatoria",
     event_type:     "Tipo de evento",
 }
@@ -53,12 +54,40 @@ async function SHA256(string){ // SHA256 encodes a string so i can use it to sto
     return hashHex
 }
 
+// check if first is before last (YYYY-MM-DD)
+// true if ordered/same day, false otherwise
+function dateOrdered(first, last){
+    split = {
+        before: first.trim().split("-"),
+        after:  last.trim().split("-")
+    }
+
+    let dates = {
+        before: {
+            year:   parseInt(split.before[0]),
+            month:  parseInt(split.before[1]),
+            day:    parseInt(split.before[2])
+        },
+        after: {
+            year:   parseInt(split.after[0]),
+            month:  parseInt(split.after[1]),
+            day:    parseInt(split.after[2])
+        }
+    }
+
+    return (
+        dates.after.year >= dates.before.year
+        && dates.after.month >= dates.before.month
+        && dates.after.day >= dates.before.day
+    )
+}
+
 function verify(){
     let button = document.getElementById("form-submit")
     let ids = ["id_date_start", "id_date_end"]
     let dates = {
-        inputDateStart: {},
-        inputDateEnd:   {}
+        id_date_start: {},
+        id_date_end:   {}
     } // id : { year: yyyy, month: mm, day: dd }
     let split = []
 
@@ -94,18 +123,15 @@ function verify(){
         }
     }
 
-    console.log(dates)
-
     // make sure the event cant end before it starts
-    button.disabled = !(
-        dates[ids[1]].year > dates[ids[0]].year
-        || dates[ids[1]].month > dates[ids[0]].month
-        || dates[ids[1]].day >= dates[ids[0]].day
-    )
-    return
+    button.disabled = !dateOrdered(document.getElementById(ids[0]).value, document.getElementById(ids[1]).value)
 }
 
-function renderEvents(data, admin){
+function renderEvents(data, admin, filter = 0){
+    eventElement = document.getElementById("events")
+
+    eventElement.innerHTML = ""
+    
     for(let i = 0; i<data.length; i++){
         let event = data[i]
         let div = document.createElement("div")
@@ -117,6 +143,7 @@ function renderEvents(data, admin){
         // create events
         for(let key in event){
             let element = document.createElement(key == "name" ? "h5" : "p")
+            let newKey = key
 
             let content
             switch(key){
@@ -130,13 +157,26 @@ function renderEvents(data, admin){
                 case "event_type":
                     content = eventTypes[event[key]-1] // off by one errors
                 break;
+                case "date_start":
+                    if(event.date_start == event.date_end){
+                        newKey = "date"
+                    }
+                    content = event[key]
+                break;
+                case "date_end":
+                    if(event.date_start == event.date_end){
+                        content = null
+                    } else {
+                        content = event[key]
+                    }
+                break;
                 default:
                     content = event[key]
                 break;
             }
 
-            // ternary operators replace true and false with yes and no
-            element.innerHTML = names[key] + ": " + content
+            element.innerHTML = content ? (names[newKey] + ": " + content) : ""
+
             div.appendChild(element)
         }
 
@@ -175,7 +215,6 @@ function renderEvents(data, admin){
 
                     let element = document.getElementById("id_" + key)
 
-                    console.log(key, event[key], element)
                     if(element){
                         switch(element.nodeName.toLowerCase()){
                             case "textarea":
@@ -234,9 +273,12 @@ function renderEvents(data, admin){
 
             div.appendChild(modify)
             div.appendChild(remove)
+
         }
 
-        document.getElementById("events").appendChild(div)
+        if(filter == 0 || event.event_type == filter){
+            eventElement.appendChild(div)
+        }
     }
 }
 
@@ -248,8 +290,6 @@ function renderHolidays(data) {
         div.classList.add("event")
         div.classList.add("rounded")
         div.classList.add(event.irrenunciable == "1" ? "event-holiday-forced" : "event-holiday")
-
-        console.log(event, event.irrenunciable)
 
         for(let key in event){
             let element = document.createElement(key == "nombre" ? "h5" : "p")
@@ -264,5 +304,21 @@ function renderHolidays(data) {
         }
 
         document.getElementById("holidays").appendChild(div)
+    }
+}
+
+// auto generate filter
+function genFilter(){
+    let selector = document.getElementById("event-filter")
+
+    if(selector){
+        for(let i = 0; i<eventTypes.length; i++){
+            let option = document.createElement("option")
+        
+            option.value = i+1
+            option.innerHTML = eventTypes[i]
+        
+            selector.appendChild(option)
+        }
     }
 }

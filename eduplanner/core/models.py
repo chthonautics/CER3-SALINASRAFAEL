@@ -6,4 +6,4 @@ class User(models.Model):
     email = models.CharField(max_length=128, unique=True)
     staff = models.BooleanField(default=False)
     password_sha256 = models.CharField(max_length=64)
-    session_token = models.CharField(max_length=32)
+    session_token = models.CharField(max_length=32, blank=True)

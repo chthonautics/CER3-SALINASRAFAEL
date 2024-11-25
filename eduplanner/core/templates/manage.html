@@ -8,8 +8,15 @@
 
 <div class="row container-fluid mx-auto" style="max-width: 70rem;">
     <div class="separator"></div>
-    <div id="events" class="col container-fluid mx-auto">
+    <div class="col container-fluid mx-auto">
         <h5 class="col text-center">Eventos</h5>
+        <div class="col container-fluid mx-auto">
+            <label for="filter">Filtrar:</label>
+            <select name="filter" id="event-filter" onchange="render(this.value)"></select> <!-- wrapper function -->
+        </div>
+        <div id="events" class="col container-fluid mx-auto">
+
+        </div>
     </div>
 
     <div class="col container-fluid mx-auto">
@@ -45,19 +52,22 @@
                     </div>
                     
                     <input disabled id="form-submit" type="submit" class="btn btn-primary" value="Aceptar" />
+                    <a href="{% url 'manage' %}"><input type="button" value="Cancelar" class="btn btn-danger"></a>
                 </form>
             </div>
     </div>
 </div>
-
-
 
 <script>
     if (typeof jQuery == "undefined") {
         alert("jquery is not loaded")
     }
 
+    genFilter()
+
     var form = $("#form")
+    var events
+    var holidays
 
     $.ajax({
         type: "get",
@@ -66,9 +76,9 @@
             csrfmiddlewaretoken: '{{ csrf_token }}' // just in case
         },
         success: function (data) {
-            jsondata = JSON.parse(data)
+            events = JSON.parse(data)
             
-            renderEvents(jsondata, true)
+            renderEvents(events, true)
         },
         error: function(response){
             switch(response.status){
@@ -79,20 +89,51 @@
         }
     })
 
+    $.ajax({
+        type: "list",
+        url: "https://apis.digital.gob.cl/fl/feriados/2024",
+        // jsonp is required or it throws a CORS fit
+        dataType: "jsonp",
+        jsonp: "callback",
+        jsonpCallback: "processJSONPResponse",
+        crossDomain: true,
+        data: {},
+        success: function (data) {
+            holidays = data
+            console.log("loaded holiday data: ", holidays)
+        },
+        error: function(response){
+            console.log("could not fetch holiday data")
+        }
+    })
+
     form.submit(function(){
         $.ajax({
             type: form.attr("method"),
             url: form.attr("action"),
             data: form.serialize(),
             success: function (data) {
-                switch(form.attr("method")){
-                    case "post":
-                        alert("Se ha creado el evento");
-                    break;
-                    case "put":
-                        alert("Se ha modificado el evento");
-                    break;
+                if(holidays){
+                    console.log(events)
+
+                    let status      = form.attr("method")
+                    let date_start  = $("#id_date_start").val()
+                    let date_end    = $("#id_date_end").val()
+
+                    for(let i = 0; i<holidays.length; i++){
+                        let date_holiday = holidays[i].fecha
+
+                        if(dateOrdered(date_start, date_holiday) && dateOrdered(date_holiday, date_end) && holidays[i].irrenunciable){
+                            status = holidays[i].nombre
+                            break
+                        }
+                    }
+
+                    alertEvent(status)
+                } else {
+                    alertEvent(form.attr("method"))
                 }
+
                 window.location.replace("{% url 'manage' %}")
             },
             error: function(data){
@@ -100,7 +141,26 @@
             }
         });
         return false
-    })            
+    })
+
+    function alertEvent(method){
+        switch(method){
+            case "post":
+                alert("Se ha creado el evento");
+            break;
+            case "put":
+                alert("Se ha modificado el evento");
+            break;
+            default:
+                alert("El evento se ha procesado, pero choca con el feriado " + method + " (irrenunciable)")
+            break;
+        }
+    }
+
+    function render(filter){
+        console.log(filter)
+        renderEvents(events, true, filter)
+    }
 </script>
 
 {% endblock %}

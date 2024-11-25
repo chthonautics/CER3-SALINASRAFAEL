@@ -23,12 +23,27 @@
         <h5 class="col text-center">Feriados</h5>
     </div>
 
-    <div id="events" class="col container-fluid mx-auto">
+    <div class="col container-fluid mx-auto">
         <h5 class="col text-center">Eventos</h5>
+        <div class="col container-fluid mx-auto">
+            <label for="filter">Filtrar:</label>
+            <select name="filter" id="event-filter" onchange="render(this.value)"></select>
+        </div>
+        <div id="events" class="col container-fluid mx-auto">
+            
+        </div>
     </div>
 </div>
 
 <script>
+    if (typeof jQuery == "undefined") {
+        alert("jquery is not loaded")
+    }
+
+    var events
+
+    genFilter()
+
     // internal api
     $.ajax({
         type: "get",
@@ -37,9 +52,9 @@
             csrfmiddlewaretoken: '{{ csrf_token }}' // just in case
         },
         success: function (data) {
-            jsondata = JSON.parse(data)
+            events = JSON.parse(data)
             
-            renderEvents(jsondata)
+            renderEvents(events, false)
         },
         error: function(response){
             switch(response.status){
@@ -71,6 +86,10 @@
             }
         }
     })
+
+    function render(filter){
+        renderEvents(events, false, filter)
+    }
 </script>
 
 {% endblock %}
